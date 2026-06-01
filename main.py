@@ -2,13 +2,15 @@ import cv2
 import pytesseract
 from aadhaar_read import front_data, back_data
 import numpy as np
+import os
 
 
 if __name__ == "__main__":
-    #Replace with tesseract path on your system
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    # Replace with your own Tesseract path if needed.
+    if os.name == "nt":
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-    #Replace with path of Front pic of Aadhaar
+    # Replace with path of Front pic of Aadhaar
     aadhaar_front_img_path = r"Front_Sample.jpg"
     #Replace with path of Back pic of Aadhaar
     aadhaar_back_img_path = r"Back_Sample.jpg"

@@ -2,9 +2,10 @@ import pytesseract
 import cv2
 import numpy as np
 import os
-import spacy
 import re
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+if os.name == "nt":
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
 def front_data(img):
@@ -12,27 +13,25 @@ def front_data(img):
     regex_gender = None
     regex_dob = None
     regex_aadhaar_number = None
-    #Name Entity Recognition function
-    NER = spacy.load("en_core_web_sm")
-    #thresh = image_processing(img)
+    # Try to read the text from the front side
     img2str_config_name = "--psm 4 --oem 3"
-    res_string_name = pytesseract.image_to_string(img,lang='eng',config=img2str_config_name)
-    name=NER(res_string_name)
-    #extracting name
-    for word in name.ents:
-        if word.label_ == "PERSON":
-            regex_name  = re.findall("[A-Z][a-z]+", word.text)
-    if not regex_name:
-        regex_name = re.findall("[A-Z][a-z]+", res_string_name)
-    # print(regex_name)
+    res_string_name = pytesseract.image_to_string(img, lang='eng', config=img2str_config_name)
 
-    #extracting information other than name
+    # Look for a name line, then fallback to capitalized words
+    name_match = re.search(r"(?:Name|NAME|name)\s*[:\-]?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})", res_string_name)
+    if name_match:
+        regex_name = re.findall(r"[A-Z][a-z]+", name_match.group(1))
+    else:
+        regex_name = re.findall(r"[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}", res_string_name)
+        if regex_name:
+            regex_name = regex_name[0].split()
+
+    # extracting information other than name
     img2str_config_else = "--psm 3 --oem 3"
-    res_string_else = pytesseract.image_to_string(img,lang='eng',config=img2str_config_else)
-
+    res_string_else = pytesseract.image_to_string(img, lang='eng', config=img2str_config_else)
 
     if not regex_name:
-        regex_name = re.findall("[A-Z][a-z]+", res_string_else)
+        regex_name = re.findall(r"[A-Z][a-z]+", res_string_else)
     #extracting gender
     regex_gender = re.findall("MALE|FEMALE|male|female|Male|Female", res_string_else)
     if regex_gender:
